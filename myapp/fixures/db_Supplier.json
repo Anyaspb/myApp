@@ -1,0 +1,1 @@
+[{"model": "suppliers.supplier", "pk": 1, "fields": {"name": "Альфа", "user": 2, "slug": "alfa", "state": true}}, {"model": "suppliers.supplier", "pk": 2, "fields": {"name": "Омега", "user": 4, "slug": "omega", "state": false}}]
