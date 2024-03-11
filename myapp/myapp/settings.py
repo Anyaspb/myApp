@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 
-from django.urls import reverse_lazy
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,20 +28,39 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend'
+]
+
 
 # Application definition
 
 INSTALLED_APPS = [
+    'baton',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     'users',
     'suppliers',
     'clients',
+    # 'social_auth',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.github',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
+
+    'baton.autodiscover',
 ]
 
 MIDDLEWARE = [
@@ -53,6 +71,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware'
 ]
 
 ROOT_URLCONF = 'myapp.urls'
@@ -72,6 +91,16 @@ TEMPLATES = [
         },
     },
 ]
+
+SOCIALACCOUNT_PROVIDERS = {
+    'github' : {
+        'APP': {
+            'client_id':'123',
+            'secret':'456',
+            'key':''
+        }
+    }
+}
 
 WSGI_APPLICATION = 'myapp.wsgi.application'
 
@@ -135,3 +164,57 @@ AUTH_USER_MODEL = "users.CustomUser"
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_THROTTLE_CLASSES': [
+            'rest_framework.throttling.AnonRateThrottle',
+            'rest_framework.throttling.UserRateThrottle'
+        ],
+        'DEFAULT_THROTTLE_RATES': {
+            'anon': '10/minute',
+            'user': '20/minute'
+    }
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'My Project API',
+    'DESCRIPTION': 'Online store',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': 'SIDECAR',  # shorthand to use the sidecar instead
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+    # OTHER SETTINGS
+}
+
+
+#
+# # Добавляем в AUTHENTICATION_BACKENDS нужные бекенды,
+# # смотрите полный список https://github.com/omab/django-social-auth/blob/master/doc/configuration.rst
+# AUTHENTICATION_BACKENDS = (
+#     'social_auth.backends.contrib.github.GithubBackend',
+#     'django.contrib.auth.backends.ModelBackend',
+# )
+#
+# # Добавляем в TEMPLATE_CONTEXT_PROCESSORS процессор "social_auth_by_name_backends"
+# TEMPLATE_CONTEXT_PROCESSORS = (
+#     'django.contrib.auth.context_processors.auth',
+#     'django.core.context_processors.request',
+#     'social_auth.context_processors.social_auth_by_name_backends',
+# )
+
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="https://331c65fbd00ce43890728820282ab0a5@o4506892602048512.ingest.us.sentry.io/4506892605128704",
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to profile 100%
+    # of sampled transactions.
+    # We recommend adjusting this value in production.
+    profiles_sample_rate=1.0,
+)

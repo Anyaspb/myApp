@@ -13,16 +13,38 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
+import patterns as patterns
+# from django.contrib import admin
+from django.template.defaulttags import url
 from django.urls import path, include
 from django.views.generic.base import TemplateView
+from baton.autodiscover import admin
+from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('baton/', include('baton.urls')),
     path("users/", include("users.urls")),
     path("users/", include("django.contrib.auth.urls")),
+    path("users/", include("allauth.urls")),
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
     path("about/", TemplateView.as_view(template_name="about.html"), name="about"),
     path("catalog/", include("suppliers.urls")),
     path("orders/", include("clients.urls")),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='docs'),
+    path('sentry-debug/', trigger_error)
+
 ]
+
+#
+# urlpatterns = patterns('',
+#     url(r'', include('social_auth.urls')),
+# )
